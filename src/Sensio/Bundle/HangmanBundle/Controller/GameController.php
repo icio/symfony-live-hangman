@@ -10,6 +10,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sensio\Bundle\HangmanBundle\Game\GameContext;
 use Sensio\Bundle\HangmanBundle\Game\WordList;
 
+use JMS\SecurityExtraBundle\Annotation\Secure;
+
 /**
  * @Route("/game")
  *
@@ -25,6 +27,7 @@ class GameController extends Controller
      *
      * @Route("/", name="hangman_game")
      * @Template()
+     * @Secure(roles="ROLE_USER")
      *
      * @param Request $request The request object
      * @return array Template variables

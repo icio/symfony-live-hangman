@@ -27,8 +27,12 @@ class PlayerController extends Controller
             if ($form->isValid()) {
                 $player = $form->getData();
 
-                // get the encoder and encode the password
-                // ...
+                $factory = $this->geT('security.encoder_factory');
+                $encoder = $factory->getEncoder($player);
+                $player->setPassword($encoder->encodePassword(
+                		$player->getRawPassword(),
+                		$player->getSalt()
+                	));
 
                 $em = $this->getDoctrine()->getEntityManager();
                 $em->persist($player);
@@ -39,5 +43,24 @@ class PlayerController extends Controller
         }
 
         return array('form' => $form->createView());
+    }
+
+    /**
+     * @Route("/login", name="login")
+     * @Template()
+     * 
+     * @param Request $request
+     * @return multitype:unknown
+     */
+    public function loginAction(Request $request)
+    {
+    	$session = $request->getSession();
+    	$name = $session->get(SecurityContext::LAST_USERNAME);
+    	$error = $session->get(SecurityContext::AUTHENTICATION_ERROR);
+
+    	$session->remove(SecurityContext::AUTHENTICATION_ERROR);
+    	return array(
+    		'last_username' => $name,
+    		'error' => $error,);
     }
 }

@@ -5,14 +5,18 @@ namespace Sensio\Bundle\HangmanBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * Sensio\Bundle\HangmanBundle\Entity\Player
  *
  * @ORM\Table(name="sl_players")
  * @ORM\Entity(repositoryClass="Sensio\Bundle\HangmanBundle\Entity\PlayerRepository")
+ * 
+ * @UniqueEntity(fields="email", message="Email already taken")
+ * @UniqueEntity(fields="username", message="Username already taken")
  */
-class Player
+class Player implements UserInterface
 {
     /**
      * @var integer $id
@@ -28,6 +32,9 @@ class Player
      *
      * @ORM\Column(name="username", type="string", length=15, unique=true)
      *
+     * @Assert\NotBlank()
+     * @Assert\Length(min = 6, max = 15)
+     * @Assert\Regex("/^[a-z][a-z0-9]+$/i")
      */
     private $username;
 
@@ -36,6 +43,8 @@ class Player
      *
      * @ORM\Column(name="email", type="string", length=60, unique=true)
      *
+     * @Assert\NotBlank()
+     * @Assert\Email()
      */
     private $email;
 
@@ -74,6 +83,10 @@ class Player
      */
     private $expiresAt;
 
+    /**
+     * @Assert\NotBlank()
+     * @Assert\Length(min = 8)
+     */
     private $rawPassword;
 
     public function __construct()
@@ -81,6 +94,15 @@ class Player
         $this->isActive  = true;
         $this->isAdmin   = false;
         $this->expiresAt = new \DateTime('+30 days');
+        $this->salt      = "This is a salt!";
+    }
+
+    /**
+     * @Assert\True(message="Your password may not contain your username.")
+     */
+    public function isPasswordValid()
+    {
+    	return 0 === preg_match('/'.preg_quote($this->username).'/i', $this->rawPassword);
     }
 
     public function setRawPassword($password)
@@ -241,5 +263,18 @@ class Player
     public function getExpiresAt()
     {
         return $this->expiresAt;
+    }
+
+    public function eraseCredentials()
+    {
+    	$this->rawPassword = null;
+    }
+    
+    public function getRoles()
+    {
+    	if ($this->isAdmin) {
+    		return array('ROLE_ADMIN');
+    	}
+    	return array('ROLE_USER');
     }
 }
