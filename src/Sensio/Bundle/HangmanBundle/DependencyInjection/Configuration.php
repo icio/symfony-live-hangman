@@ -26,6 +26,7 @@ class Configuration implements ConfigurationInterface
 	        		->defaultValue(8)
 	        	->end()
 	        	->arrayNode('dictionaries')
+	        		->performNoDeepMerging()
 	        		->isRequired()
 	        		->requiresAtLeastOneElement()
 	        		->prototype('scalar')
